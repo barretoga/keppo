@@ -28,6 +28,8 @@ model User {
   id                 Int                  @id @default(autoincrement())
   email              String               @unique
   password           String
+  name               String?
+  phoneNumber        String?
   discordId          String?              @unique
   events             Event[]
   mangaSubscriptions MangaSubscription[]

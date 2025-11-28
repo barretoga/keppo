@@ -37,9 +37,23 @@ export class DiscordModalBuilder {
       .setStyle(TextInputStyle.Short)
       .setRequired(true);
 
+    const nameInput = new TextInputBuilder()
+      .setCustomId(FIELD_IDS.NAME)
+      .setLabel(MESSAGES.LABEL.NAME)
+      .setStyle(TextInputStyle.Short)
+      .setRequired(true);
+
+    const phoneInput = new TextInputBuilder()
+      .setCustomId(FIELD_IDS.PHONE)
+      .setLabel(MESSAGES.LABEL.PHONE)
+      .setStyle(TextInputStyle.Short)
+      .setRequired(true);
+
     modal.addComponents(
       new ActionRowBuilder<TextInputBuilder>().addComponents(emailInput),
       new ActionRowBuilder<TextInputBuilder>().addComponents(passwordInput),
+      new ActionRowBuilder<TextInputBuilder>().addComponents(nameInput),
+      new ActionRowBuilder<TextInputBuilder>().addComponents(phoneInput),
     );
 
     return modal;

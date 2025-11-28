@@ -5,6 +5,7 @@ import { MalModule } from '../mal/mal.module';
 import { PrismaModule } from '../prisma/prisma.module';
 import { DiscordModule } from '../discord/discord.module';
 import { MangaUpdatesModule } from '../manga-updates/manga-updates.module';
+import { WhatsappModule } from '../whatsapp/whatsapp.module';
 
 @Module({
   imports: [
@@ -12,7 +13,9 @@ import { MangaUpdatesModule } from '../manga-updates/manga-updates.module';
     MalModule,
     MangaUpdatesModule,
     forwardRef(() => DiscordModule),
-  ],providers: [MangaService, MangaMonitorService],
+    WhatsappModule,
+  ],
+  providers: [MangaService, MangaMonitorService],
   exports: [MangaService],
 })
 export class MangaModule {}

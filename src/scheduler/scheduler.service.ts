@@ -3,6 +3,7 @@ import { Cron, CronExpression } from '@nestjs/schedule';
 import { PrismaService } from '../prisma/prisma.service';
 import parser from 'cron-parser';
 import { DiscordService } from '../discord/discord.service';
+import { WhatsappService } from '../whatsapp/whatsapp.service';
 
 @Injectable()
 export class SchedulerService {
@@ -11,6 +12,7 @@ export class SchedulerService {
   constructor(
     private prisma: PrismaService,
     private discordService: DiscordService,
+    private whatsappService: WhatsappService,
   ) {}
 
   @Cron(CronExpression.EVERY_MINUTE)
@@ -46,8 +48,13 @@ export class SchedulerService {
     }
   }
 
-  private triggerEvent(event: any) {
+  private async triggerEvent(event: any) {
     this.logger.log(`TRIGGERING EVENT: ${event.title} - ${event.description}`);
-    this.discordService.notifyEvent(event);
+    await this.discordService.notifyEvent(event);
+
+    if (event.user?.phoneNumber) {
+      const message = `*Event Reminder*\n\n*${event.title}*\n${event.description || ''}`;
+      await this.whatsappService.sendText(event.user.phoneNumber, message);
+    }
   }
 }

@@ -11,6 +11,7 @@ import { AuthModule } from './auth/auth.module';
 import { MalModule } from './mal/mal.module';
 import { MangaUpdatesModule } from './manga-updates/manga-updates.module';
 import { MangaModule } from './manga/manga.module';
+import { WhatsappModule } from './whatsapp/whatsapp.module';
 
 @Module({
   imports: [
@@ -24,6 +25,7 @@ import { MangaModule } from './manga/manga.module';
     MalModule,
     MangaUpdatesModule,
     MangaModule,
+    WhatsappModule,
   ],
   controllers: [AppController],
   providers: [AppService],

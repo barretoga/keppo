@@ -4,6 +4,7 @@ import { MangaService } from './manga.service';
 import { MalService } from '../mal/mal.service';
 import { MangaUpdatesService } from '../manga-updates/manga-updates.service';
 import { DiscordService } from '../discord/discord.service';
+import { WhatsappService } from '../whatsapp/whatsapp.service';
 
 @Injectable()
 export class MangaMonitorService {
@@ -15,6 +16,7 @@ export class MangaMonitorService {
     private readonly mangaUpdatesService: MangaUpdatesService,
     @Inject(forwardRef(() => DiscordService))
     private readonly discordService: DiscordService,
+    private readonly whatsappService: WhatsappService,
   ) {}
 
   /**
@@ -72,7 +74,7 @@ export class MangaMonitorService {
           // Update database
           await this.mangaService.updateLastChapter(sub.id, currentChapter);
           
-          // Send notification
+          // Send Discord notification
           await this.discordService.notifyMangaUpdate(
             sub.title,
             currentChapter,
@@ -80,6 +82,12 @@ export class MangaMonitorService {
             malId,
             sub.channelId,
           );
+
+          // Send WhatsApp notification
+          if (sub.user?.phoneNumber) {
+            const message = `*New Chapter Released!*\n\n*${sub.title}*\nChapter ${currentChapter} is now available!`;
+            await this.whatsappService.sendText(sub.user.phoneNumber, message);
+          }
         }
       }
     } catch (error) {

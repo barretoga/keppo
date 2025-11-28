@@ -101,9 +101,11 @@ export class ModalHandler {
   private async handleRegister(interaction: ModalSubmitInteraction): Promise<void> {
     const email = interaction.fields.getTextInputValue(FIELD_IDS.EMAIL);
     const password = interaction.fields.getTextInputValue(FIELD_IDS.PASSWORD);
+    const name = interaction.fields.getTextInputValue(FIELD_IDS.NAME);
+    const phoneNumber = interaction.fields.getTextInputValue(FIELD_IDS.PHONE);
 
     try {
-      await this.authService.register(email, password);
+      await this.authService.register(email, password, name, phoneNumber);
       await interaction.reply({
         content: MESSAGES.SUCCESS.REGISTER,
         ephemeral: true,

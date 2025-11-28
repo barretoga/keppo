@@ -7,13 +7,15 @@ import { UserAlreadyExistsException } from '../discord/exceptions/discord.except
 export class AuthService {
   constructor(private prisma: PrismaService) {}
 
-  async register(email: string, pass: string) {
+  async register(email: string, pass: string, name: string, phoneNumber: string) {
     const hashedPassword = await bcrypt.hash(pass, 10);
     try {
       return await this.prisma.user.create({
         data: {
           email,
           password: hashedPassword,
+          name,
+          phoneNumber,
         },
       });
     } catch (error) {

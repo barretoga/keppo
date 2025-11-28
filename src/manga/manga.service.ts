@@ -144,12 +144,13 @@ export class MangaService {
   /**
    * Get all active subscriptions (for monitoring)
    */
-  async getAllSubscriptions(): Promise<MangaSubscriptionInfo[]> {
+  async getAllSubscriptions() {
     const subscriptions = await this.prisma.mangaSubscription.findMany({
+      include: { user: true },
       orderBy: { updatedAt: 'asc' },
     });
 
-    return subscriptions.map(this.mapToSubscriptionInfo);
+    return subscriptions;
   }
 
   /**
