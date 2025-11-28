@@ -72,6 +72,12 @@ export interface NotificationEventData {
   title: string;
   description?: string;
   channelId?: string;
+  type: string;
+  cron?: string;
+  user?: {
+    email: string;
+    discordId?: string;
+  };
 }
 
 // Validation Result

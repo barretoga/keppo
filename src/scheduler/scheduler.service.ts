@@ -16,7 +16,11 @@ export class SchedulerService {
   @Cron(CronExpression.EVERY_MINUTE)
   async handleCron() {
     this.logger.debug('Checking for events...');
-    const events = await this.prisma.event.findMany();
+    const events = await this.prisma.event.findMany({
+      include: {
+        user: true, // Include user data for creator information
+      },
+    });
     const now = new Date();
 
     for (const event of events) {

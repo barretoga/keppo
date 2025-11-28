@@ -15,6 +15,7 @@ import {
   ChatInputCommandInteraction,
   ModalSubmitInteraction,
   StringSelectMenuInteraction,
+  EmbedBuilder,
 } from 'discord.js';
 import { ConfigService } from '@nestjs/config';
 import { AuthService } from '../auth/auth.service';
@@ -267,12 +268,44 @@ export class DiscordService implements OnModuleInit {
         throw new ChannelNotFoundException(channelId);
       }
 
-      const message = MESSAGES.NOTIFICATION.EVENT_TRIGGERED(
-        event.title,
-        event.description,
-      );
+      // Import cron formatter
+      const { formatCronExpression } = await import('./utils/cron-formatter.js');
 
-      await channel.send(message);
+      // Create rich embed
+      const embed = new EmbedBuilder()
+        .setTitle(`📰 ${event.title}`)
+        .setColor(event.type === 'ONE_TIME' ? 0x0099ff : 0x00ff00) // Blue for one-time, Green for recurring
+        .setTimestamp();
+
+      // Add description if available
+      if (event.description) {
+        embed.setDescription(event.description);
+      }
+
+      // Add recurrence information for recurring events
+      if (event.type === 'RECURRING' && event.cron) {
+        const schedule = formatCronExpression(event.cron);
+        embed.addFields({
+          name: '🔁 Recurrence',
+          value: schedule,
+          inline: false,
+        });
+      }
+
+      // Add creator information if available
+      if (event.user) {
+        let creatorText = 'Unknown user';
+        if (event.user.discordId) {
+          creatorText = `<@${event.user.discordId}>`;
+        }
+        embed.addFields({
+          name: '👤 Created by',
+          value: creatorText,
+          inline: false,
+        });
+      }
+
+      await channel.send({ embeds: [embed] });
       this.logger.log(`Notification sent to channel ${channel.name} (${channelId})`);
     } catch (error) {
       this.logger.error(`Failed to send notification to channel ${channelId}:`, error);
