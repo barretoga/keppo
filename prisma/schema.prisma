@@ -25,13 +25,14 @@ model Event {
 }
 
 model User {
-  id        Int      @id @default(autoincrement())
-  email     String   @unique
-  password  String
-  discordId String?  @unique
-  events    Event[]
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id                 Int                  @id @default(autoincrement())
+  email              String               @unique
+  password           String
+  discordId          String?              @unique
+  events             Event[]
+  mangaSubscriptions MangaSubscription[]
+  createdAt          DateTime             @default(now())
+  updatedAt          DateTime             @updatedAt
 }
 
 model GuildConfig {
@@ -40,4 +41,19 @@ model GuildConfig {
   defaultChannelId String
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
+}
+
+model MangaSubscription {
+  id          Int      @id @default(autoincrement())
+  malId       Int      // MyAnimeList manga ID
+  title       String
+  coverImage  String?  // Cover image URL
+  lastChapter Int      @default(0) // Last known chapter count
+  userId      Int
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  channelId   String   // Discord channel for notifications
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([malId, userId]) // One subscription per manga per user
 }

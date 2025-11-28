@@ -3,7 +3,7 @@
  * Main service for Discord bot integration
  */
 
-import { Injectable, OnModuleInit, Logger } from '@nestjs/common';
+import { Injectable, OnModuleInit, Logger, Inject, forwardRef } from '@nestjs/common';
 import {
   Client,
   GatewayIntentBits,
@@ -24,12 +24,20 @@ import { PrismaService } from '../prisma/prisma.service';
 import { CommandHandler } from './handlers/command.handler';
 import { ModalHandler } from './handlers/modal.handler';
 import { SelectMenuHandler } from './handlers/select-menu.handler';
-import { COMMANDS, SUBCOMMANDS, MESSAGES } from './discord.constants';
+import {
+  COMMANDS,
+  SUBCOMMANDS,
+  MANGA_SUBCOMMANDS,
+  MESSAGES,
+} from './discord.constants';
 import { NotificationEventData } from './discord.types';
 import {
   ChannelNotFoundException,
   DiscordClientNotReadyException,
 } from './exceptions/discord.exceptions';
+
+import { MalService } from '../mal/mal.service';
+import { MangaService } from '../manga/manga.service';
 
 @Injectable()
 export class DiscordService implements OnModuleInit {
@@ -49,6 +57,9 @@ export class DiscordService implements OnModuleInit {
     private readonly authService: AuthService,
     private readonly eventsService: EventsService,
     private readonly prisma: PrismaService,
+    private readonly malService: MalService,
+    @Inject(forwardRef(() => MangaService))
+    private readonly mangaService: MangaService,
   ) {
     this.client = new Client({
       intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages],
@@ -59,9 +70,18 @@ export class DiscordService implements OnModuleInit {
       this.authService,
       this.eventsService,
       this.prisma,
+      this.mangaService,
     );
-    this.modalHandler = new ModalHandler(this.authService, this.eventsService);
-    this.selectMenuHandler = new SelectMenuHandler(this.eventsService);
+    this.modalHandler = new ModalHandler(
+      this.authService,
+      this.eventsService,
+      this.malService,
+    );
+    this.selectMenuHandler = new SelectMenuHandler(
+      this.eventsService,
+      this.mangaService,
+      this.authService,
+    );
   }
 
   /**
@@ -190,6 +210,18 @@ export class DiscordService implements OnModuleInit {
         .addSubcommand((sub) =>
           sub.setName(SUBCOMMANDS.DELETE).setDescription('Delete an event'),
         ),
+      new SlashCommandBuilder()
+        .setName(COMMANDS.MANGA)
+        .setDescription('Manage manga subscriptions')
+        .addSubcommand((sub) =>
+          sub.setName(MANGA_SUBCOMMANDS.SEARCH).setDescription('Search and subscribe to a manga'),
+        )
+        .addSubcommand((sub) =>
+          sub.setName(MANGA_SUBCOMMANDS.LIST).setDescription('List your manga subscriptions'),
+        )
+        .addSubcommand((sub) =>
+          sub.setName(MANGA_SUBCOMMANDS.UNSUBSCRIBE).setDescription('Unsubscribe from a manga'),
+        ),
     ];
 
     const rest = new REST({ version: '10' }).setToken(token);
@@ -310,6 +342,47 @@ export class DiscordService implements OnModuleInit {
     } catch (error) {
       this.logger.error(`Failed to send notification to channel ${channelId}:`, error);
       throw error;
+    }
+  }
+
+  /**
+   * Send manga update notification
+   */
+  async notifyMangaUpdate(
+    title: string,
+    chapter: number,
+    coverImage: string | null,
+    malId: number,
+    channelId: string,
+  ): Promise<void> {
+    if (!this.client.isReady()) {
+      this.logger.warn(MESSAGES.ERROR.CLIENT_NOT_READY);
+      return;
+    }
+
+    try {
+      const channel = await this.client.channels.fetch(channelId);
+
+      if (!channel || !(channel instanceof TextChannel)) {
+        this.logger.error(MESSAGES.ERROR.CHANNEL_NOT_FOUND(channelId));
+        return;
+      }
+
+      const embed = new EmbedBuilder()
+        .setTitle(`📚 New Chapter Released!`)
+        .setDescription(`**${title}**\nChapter ${chapter} is now available!`)
+        .setColor(0xff6b00) // Orange
+        .setURL(`https://myanimelist.net/manga/${malId}`)
+        .setTimestamp();
+
+      if (coverImage) {
+        embed.setThumbnail(coverImage);
+      }
+
+      await channel.send({ embeds: [embed] });
+      this.logger.log(`Manga notification sent to channel ${channel.name} (${channelId})`);
+    } catch (error) {
+      this.logger.error(`Failed to send manga notification to channel ${channelId}:`, error);
     }
   }
 

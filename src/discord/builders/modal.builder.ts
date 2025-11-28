@@ -224,4 +224,26 @@ export class DiscordModalBuilder {
 
     return modal;
   }
+
+  /**
+   * Creates a manga search modal
+   */
+  static createMangaSearchModal(): ModalBuilder {
+    const modal = new ModalBuilder()
+      .setCustomId(MODAL_IDS.MANGA_SEARCH)
+      .setTitle(MODAL_TITLES.SEARCH_MANGA);
+
+    const searchInput = new TextInputBuilder()
+      .setCustomId(FIELD_IDS.SEARCH_QUERY)
+      .setLabel(MESSAGES.LABEL.SEARCH)
+      .setStyle(TextInputStyle.Short)
+      .setPlaceholder(MESSAGES.PLACEHOLDER.SEARCH)
+      .setRequired(true);
+
+    modal.addComponents(
+      new ActionRowBuilder<TextInputBuilder>().addComponents(searchInput),
+    );
+
+    return modal;
+  }
 }

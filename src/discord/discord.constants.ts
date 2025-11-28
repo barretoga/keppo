@@ -11,21 +11,26 @@ export const MODAL_IDS = {
   CREATE_EVENT_DAILY: 'createEventDailyModal',
   CREATE_EVENT_WEEKLY: 'createEventWeeklyModal',
   CREATE_EVENT_RECURRING: 'createEventRecurringModal',
+  MANGA_SEARCH: 'mangaSearchModal',
 } as const;
 
 // Custom IDs for Select Menus
 export const SELECT_MENU_IDS = {
-  CREATE_EVENT_TYPE: 'createEventTypeSelect',
-  CREATE_EVENT_FREQUENCY: 'createEventFrequencySelect',
+  EVENT_TYPE: 'eventTypeSelect',
+  EVENT_FREQUENCY: 'eventFrequencySelect',
+  EVENT_DAY: 'eventDaySelect',
+  MANGA_SELECT: 'mangaSelect',
+  MANGA_UNSUBSCRIBE: 'mangaUnsubscribeSelect',
   DELETE_EVENT: 'deleteEventSelect',
 } as const;
 
 // Modal Field IDs
 export const FIELD_IDS = {
+  TITLE: 'titleInput',
+  DESCRIPTION: 'descriptionInput',
+  SEARCH_QUERY: 'searchQueryInput',
   EMAIL: 'email',
   PASSWORD: 'password',
-  TITLE: 'title',
-  DESCRIPTION: 'description',
   DATE: 'date',
   TIME: 'time',
   DAY: 'day',
@@ -42,19 +47,21 @@ export enum EventType {
 export enum EventFrequency {
   DAILY = 'DAILY',
   WEEKLY = 'WEEKLY',
+  MONTHLY = 'MONTHLY',
+  YEARLY = 'YEARLY',
   CUSTOM = 'CUSTOM',
 }
 
 // Days of Week Mapping
-export const DAYS_OF_WEEK: Record<string, number> = {
-  sunday: 0,
-  monday: 1,
-  tuesday: 2,
-  wednesday: 3,
-  thursday: 4,
-  friday: 5,
-  saturday: 6,
-} as const;
+export const DAYS_OF_WEEK = [
+  { label: 'Sunday', value: '0' },
+  { label: 'Monday', value: '1' },
+  { label: 'Tuesday', value: '2' },
+  { label: 'Wednesday', value: '3' },
+  { label: 'Thursday', value: '4' },
+  { label: 'Friday', value: '5' },
+  { label: 'Saturday', value: '6' },
+];
 
 // Messages
 export const MESSAGES = {
@@ -68,6 +75,9 @@ export const MESSAGES = {
     EVENT_CREATED_WEEKLY: (day: string, time: string) => `Weekly event created! Every ${day} at ${time}`,
     EVENT_CREATED_RECURRING: 'Recurring event created successfully!',
     EVENT_DELETED: (eventId: number) => `Event ${eventId} deleted.`,
+    EVENT_CREATED: 'Event created successfully!',
+    SUBSCRIPTION_CREATED: (title: string) => `Successfully subscribed to **${title}**! You will be notified when new chapters are released.`,
+    UNSUBSCRIBED: (title: string) => `Successfully unsubscribed from **${title}**.`,
   },
   
   // Error Messages
@@ -88,12 +98,25 @@ export const MESSAGES = {
     CLIENT_NOT_READY: 'Discord client not ready, skipping notification',
     CHANNEL_NOT_FOUND: (channelId: string) => `Channel with ID ${channelId} not found`,
     NO_CHANNEL_CONFIGURED: 'No DISCORD_CHANNEL_ID configured for this event',
+    COMMAND_NOT_FOUND: 'Command not found.',
+    MODAL_NOT_FOUND: 'Modal handler not found.',
+    SELECT_MENU_NOT_FOUND: 'Select menu handler not found.',
+    INVALID_CRON: 'Invalid cron expression.',
+    NO_MANGA_FOUND: 'No manga found with that name.',
+    ALREADY_SUBSCRIBED: 'You are already subscribed to this manga.',
+    SUBSCRIPTION_FAILED: 'Failed to subscribe to manga.',
+    NO_SUBSCRIPTIONS: 'You have no active manga subscriptions.',
+    USER_ALREADY_EXISTS: 'User with this email already exists.',
   },
   
   // Prompts
   PROMPT: {
-    SELECT_EVENT_TYPE: 'What type of event is this?',
-    SELECT_FREQUENCY: 'How often should it repeat?',
+    SELECT_EVENT_TYPE: 'Select the type of event you want to create:',
+    SELECT_FREQUENCY: 'Select how often the event should repeat:',
+    SELECT_DAY: 'Select the day of the week:',
+    ENTER_CRON: 'Please enter a cron expression (e.g., "* * * * *"):',
+    SELECT_MANGA: 'Select a manga to subscribe to:',
+    SELECT_UNSUBSCRIBE: 'Select a manga to unsubscribe from:',
     SELECT_EVENT_TO_DELETE: 'Choose an event to delete:',
     YOUR_EVENTS: 'Your events:',
   },
@@ -113,6 +136,7 @@ export const MESSAGES = {
     TIME: 'Time (HH:mm)',
     DAY_OF_WEEK: 'Day of Week',
     CRON_EXPRESSION: 'Cron Expression',
+    SEARCH: 'Search Manga',
   },
   
   // Descriptions
@@ -132,13 +156,26 @@ export const MESSAGES = {
     TIME_MORNING: '09:00',
     DAY: 'Monday',
     CRON: '* * * * *',
+    SEARCH: 'Enter manga name (e.g., One Piece)',
   },
   
   // Notification
   NOTIFICATION: {
     EVENT_TRIGGERED: (title: string, description?: string) => 
       `**EVENT TRIGGERED**: ${title}\n${description || ''}`,
+    NEW_CHAPTER: (title: string, chapter: number, cover?: string) => 
+      `**NEW CHAPTER RELEASED!**\n\n**${title}**\nChapter ${chapter} is now available!`,
   },
+} as const;
+
+export const MODAL_TITLES = {
+  REGISTER: 'Register',
+  LOGIN: 'Login',
+  CREATE_ONE_TIME_EVENT: 'Create One-Time Event',
+  CREATE_DAILY_EVENT: 'Create Daily Event',
+  CREATE_WEEKLY_EVENT: 'Create Weekly Event',
+  CREATE_CUSTOM_EVENT: 'Create Custom Recurring Event',
+  SEARCH_MANGA: 'Search Manga',
 } as const;
 
 // Command Names
@@ -147,6 +184,7 @@ export const COMMANDS = {
   LOGIN: 'login',
   SETUP: 'setup',
   EVENT: 'event',
+  MANGA: 'manga',
 } as const;
 
 // Subcommands
@@ -156,12 +194,8 @@ export const SUBCOMMANDS = {
   DELETE: 'delete',
 } as const;
 
-// Modal Titles
-export const MODAL_TITLES = {
-  REGISTER: 'Register',
-  LOGIN: 'Login',
-  CREATE_ONE_TIME_EVENT: 'Create One-Time Event',
-  CREATE_DAILY_EVENT: 'Create Daily Event',
-  CREATE_WEEKLY_EVENT: 'Create Weekly Event',
-  CREATE_CUSTOM_EVENT: 'Create Custom Recurring Event',
+export const MANGA_SUBCOMMANDS = {
+  SEARCH: 'search',
+  LIST: 'list',
+  UNSUBSCRIBE: 'unsubscribe',
 } as const;

@@ -8,6 +8,9 @@ import { SchedulerModule } from './scheduler/scheduler.module';
 import { ScheduleModule } from '@nestjs/schedule';
 import { DiscordModule } from './discord/discord.module';
 import { AuthModule } from './auth/auth.module';
+import { MalModule } from './mal/mal.module';
+import { MangaUpdatesModule } from './manga-updates/manga-updates.module';
+import { MangaModule } from './manga/manga.module';
 
 @Module({
   imports: [
@@ -18,6 +21,9 @@ import { AuthModule } from './auth/auth.module';
     SchedulerModule,
     DiscordModule,
     AuthModule,
+    MalModule,
+    MangaUpdatesModule,
+    MangaModule,
   ],
   controllers: [AppController],
   providers: [AppService],

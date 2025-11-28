@@ -1,6 +1,7 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import * as bcrypt from 'bcrypt';
+import { UserAlreadyExistsException } from '../discord/exceptions/discord.exceptions';
 
 @Injectable()
 export class AuthService {
@@ -8,12 +9,19 @@ export class AuthService {
 
   async register(email: string, pass: string) {
     const hashedPassword = await bcrypt.hash(pass, 10);
-    return this.prisma.user.create({
-      data: {
-        email,
-        password: hashedPassword,
-      },
-    });
+    try {
+      return await this.prisma.user.create({
+        data: {
+          email,
+          password: hashedPassword,
+        },
+      });
+    } catch (error) {
+      if (error.code === 'P2002') {
+        throw new UserAlreadyExistsException();
+      }
+      throw error;
+    }
   }
 
   async validateUser(email: string, pass: string): Promise<any> {
@@ -38,5 +46,9 @@ export class AuthService {
 
   async findByDiscordId(discordId: string) {
     return this.prisma.user.findUnique({ where: { discordId } });
+  }
+
+  async validateDiscordUser(discordId: string) {
+    return this.findByDiscordId(discordId);
   }
 }

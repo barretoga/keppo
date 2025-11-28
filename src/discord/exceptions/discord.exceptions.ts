@@ -115,3 +115,9 @@ export class GuildConfigurationFailedException extends DiscordException {
     super('Failed to save guild configuration', HttpStatus.INTERNAL_SERVER_ERROR);
   }
 }
+
+export class UserAlreadyExistsException extends DiscordException {
+  constructor() {
+    super('User with this email already exists.', HttpStatus.CONFLICT);
+  }
+}

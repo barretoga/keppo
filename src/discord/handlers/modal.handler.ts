@@ -7,6 +7,8 @@ import { Injectable, Logger } from '@nestjs/common';
 import { ModalSubmitInteraction } from 'discord.js';
 import { AuthService } from '../../auth/auth.service';
 import { EventsService } from '../../events/events.service';
+import { MalService } from '../../mal/mal.service';
+import { DiscordSelectMenuBuilder } from '../builders/select-menu.builder';
 import {
   MODAL_IDS,
   FIELD_IDS,
@@ -29,6 +31,7 @@ import {
   InvalidCronExpressionException,
   EventCreationFailedException,
   UserNotAuthenticatedException,
+  UserAlreadyExistsException,
 } from '../exceptions/discord.exceptions';
 
 @Injectable()
@@ -38,6 +41,7 @@ export class ModalHandler {
   constructor(
     private readonly authService: AuthService,
     private readonly eventsService: EventsService,
+    private readonly malService: MalService, // Injected MalService
   ) {}
 
   /**
@@ -65,6 +69,9 @@ export class ModalHandler {
           break;
         case MODAL_IDS.CREATE_EVENT_RECURRING:
           await this.handleCreateRecurringEvent(interaction);
+          break;
+        case MODAL_IDS.MANGA_SEARCH:
+          await this.handleMangaSearch(interaction);
           break;
         default:
           this.logger.warn(`Unknown modal: ${customId}`);
@@ -102,6 +109,13 @@ export class ModalHandler {
         ephemeral: true,
       });
     } catch (error) {
+      if (error instanceof UserAlreadyExistsException) {
+        await interaction.reply({
+          content: MESSAGES.ERROR.USER_ALREADY_EXISTS || 'User with this email already exists.',
+          ephemeral: true,
+        });
+        return;
+      }
       this.logger.error('Registration failed:', error);
       throw new RegistrationFailedException(error.message);
     }
@@ -308,6 +322,35 @@ export class ModalHandler {
     } catch (error) {
       this.logger.error('Failed to create recurring event:', error);
       throw new EventCreationFailedException(error.message);
+    }
+  }
+
+  /**
+   * Handle manga search modal submission
+   */
+  async handleMangaSearch(interaction: ModalSubmitInteraction): Promise<void> {
+    const query = interaction.fields.getTextInputValue(FIELD_IDS.SEARCH_QUERY);
+
+    try {
+      await interaction.deferReply({ ephemeral: true });
+      const results = await this.malService.searchManga(query);
+
+      if (results.length === 0) {
+        await interaction.editReply({
+          content: MESSAGES.ERROR.NO_MANGA_FOUND,
+        });
+        return;
+      }
+
+      const row = DiscordSelectMenuBuilder.createMangaSelect(results);
+
+      await interaction.editReply({
+        content: MESSAGES.PROMPT.SELECT_MANGA,
+        components: [row],
+      });
+    } catch (error) {
+      this.logger.error('Manga search failed:', error);
+      throw error;
     }
   }
 }
