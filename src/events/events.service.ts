@@ -6,8 +6,25 @@ import { Prisma } from '@prisma/client';
 export class EventsService {
   constructor(private prisma: PrismaService) {}
 
-  create(data: Prisma.EventCreateInput) {
-    return this.prisma.event.create({ data });
+  create(data: any) {
+    let channelId = data.channelId;
+    if (data.channelLink) {
+      // Extract channel ID from link like https://discord.com/channels/GUILD_ID/CHANNEL_ID
+      const parts = data.channelLink.split('/');
+      const lastPart = parts[parts.length - 1];
+      if (lastPart && /^\d+$/.test(lastPart)) {
+        channelId = lastPart;
+      }
+    }
+
+    const { channelLink, ...eventData } = data; // Remove channelLink from data passed to Prisma
+
+    return this.prisma.event.create({
+      data: {
+        ...eventData,
+        channelId,
+      },
+    });
   }
 
   findAll() {

@@ -17,6 +17,27 @@ model Event {
   type        String   // "ONE_TIME" or "RECURRING"
   date        DateTime? // For one-time events
   cron        String?   // For recurring events
+  channelId   String?   // Discord Channel ID
+  userId      Int?
+  user        User?     @relation(fields: [userId], references: [id])
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  password  String
+  discordId String?  @unique
+  events    Event[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model GuildConfig {
+  id               Int      @id @default(autoincrement())
+  guildId          String   @unique
+  defaultChannelId String
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
 }

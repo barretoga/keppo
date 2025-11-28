@@ -2,12 +2,16 @@ import { Injectable, Logger } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { PrismaService } from '../prisma/prisma.service';
 import parser from 'cron-parser';
+import { DiscordService } from '../discord/discord.service';
 
 @Injectable()
 export class SchedulerService {
   private readonly logger = new Logger(SchedulerService.name);
 
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private discordService: DiscordService,
+  ) {}
 
   @Cron(CronExpression.EVERY_MINUTE)
   async handleCron() {
@@ -40,6 +44,6 @@ export class SchedulerService {
 
   private triggerEvent(event: any) {
     this.logger.log(`TRIGGERING EVENT: ${event.title} - ${event.description}`);
-    // Future integration: Send to WhatsApp/Discord
+    this.discordService.notifyEvent(event);
   }
 }
