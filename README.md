@@ -39,7 +39,6 @@
 
 ### Why Keppo?
 
-- 🔐 **Secure Authentication**: User registration and login system with bcrypt password hashing
 - 📅 **Flexible Scheduling**: Support for one-time events, daily, weekly, and custom cron-based schedules
 - 🎨 **Modern UI**: Interactive modals and select menus for a seamless user experience
 - ⚡ **Real-time Notifications**: Automated event notifications sent directly to configured Discord channels
