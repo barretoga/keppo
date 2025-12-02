@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: keppo-bot
+    env: docker
+    plan: free
+    dockerfilePath: ./Dockerfile
+    envVars:
+      - key: DISCORD_TOKEN
+        sync: false
+      - key: DISCORD_CLIENT_ID
+        sync: false
+      - key: DISCORD_CHANNEL_ID
+        sync: false
+      - key: DATABASE_URL
+        sync: false
+      - key: NODE_ENV
+        value: production
