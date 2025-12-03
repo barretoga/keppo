@@ -9,6 +9,7 @@ COPY package*.json ./
 COPY prisma ./prisma/
 
 # Install app dependencies
+RUN apk add --no-cache openssl
 RUN npm ci
 
 # Copy the rest of the application source code
@@ -35,4 +36,5 @@ COPY --from=builder /usr/src/app/package*.json ./
 COPY --from=builder /usr/src/app/prisma ./prisma
 
 # Start the server using the production build
+RUN apk add --no-cache openssl
 CMD ["npm", "run", "start:prod"]
